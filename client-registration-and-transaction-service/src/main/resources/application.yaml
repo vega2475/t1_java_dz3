@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: t1-java-demo-dz3
+  datasource:
+    username: postgres
+    password: "0000"
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/t1_dz3
+  liquibase:
+    enabled: true
+    default-schema: public
+    change-log: db/changelog/db.changelog-master.xml
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/t1_dz3
+    user: postgres
+    password: "0000"
+
+t1:
+  kafka:
+    bootstrap:
+      server: localhost:9092
+    consumer:
+      group-id: t1_demo
+    producer:
+      enable: true
+    topic:
+      transaction_topic: t1_demo_client_transactions
+      transaction_errors_topic: t1_demo_client_transaction_errors
+
+server:
+  port: 8000

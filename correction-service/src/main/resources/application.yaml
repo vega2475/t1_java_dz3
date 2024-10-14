@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: t1-java-demo-dz3
+  datasource:
+    username: postgres
+    password: "0000"
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/t1_dz3
+
+t1:
+  kafka:
+    bootstrap:
+      server: localhost:9092
+    consumer:
+      group-id: t1_demo
+    topic:
+      transaction_errors_topic: t1_demo_client_transaction_errors
+
+server:
+  port: 8002
