@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -61,6 +63,11 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, TransactionDto> containerFactory = new ConcurrentKafkaListenerContainerFactory<>();
         factoryBuilder(transactionConsumerFactory(), containerFactory);
         return containerFactory;
+    }
+
+    @Bean
+    public KafkaTemplate<String, TransactionDto>transactionProducerKafkaTemplate(ProducerFactory<String, TransactionDto> producerFactory){
+        return new KafkaTemplate<>(producerFactory);
     }
 
     private <T> void factoryBuilder(ConsumerFactory<String, T> consumerFactory, ConcurrentKafkaListenerContainerFactory<String, T> factory) {

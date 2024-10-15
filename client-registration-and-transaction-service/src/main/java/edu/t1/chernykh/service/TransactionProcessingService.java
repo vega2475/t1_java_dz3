@@ -4,5 +4,5 @@ import edu.t1.chernykh.entity.Transaction;
 
 public interface TransactionProcessingService {
     boolean doApprovalTransactionProcess(Transaction transaction);
-    void doCancelationTransactionalProcess(Transaction transaction);
+    void doCancelationTransactionalProcess(Long id);
 }

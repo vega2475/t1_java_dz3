@@ -8,5 +8,13 @@ import java.io.Serializable;
  * DTO for {@link edu.t1.chernykh.entity.Transaction}
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record TransactionDto(Double amount, Long accountId, Long senderId, Long receiverId) implements Serializable {
+public record TransactionDto(Double amount, Long senderId, Long receiverId) implements Serializable {
+    @Override
+    public String toString() {
+        return "TransactionDto{" +
+                "amount=" + amount +
+                ", senderId=" + senderId +
+                ", receiverId=" + receiverId +
+                '}';
+    }
 }

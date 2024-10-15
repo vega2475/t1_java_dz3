@@ -1,22 +1,32 @@
 package edu.t1.chernykh.service.implementation;
 
+import edu.t1.chernykh.dto.TransactionDto;
 import edu.t1.chernykh.entity.Account;
 import edu.t1.chernykh.entity.Transaction;
 import edu.t1.chernykh.repository.TransactionRepository;
 import edu.t1.chernykh.service.TransactionProcessingService;
+import edu.t1.chernykh.util.TransactionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DefaultTransactionProcessingService implements TransactionProcessingService {
-
     private final TransactionRepository transactionRepository;
+    private final KafkaTemplate<String, TransactionDto> kafkaTemplate;
+    private final TransactionMapper transactionMapper;
+
+    @Value("${t1.kafka.topic.transaction_errors_topic}")
+    private String transactionErrorTopic;
 
     @Autowired
-    public DefaultTransactionProcessingService(TransactionRepository transactionRepository) {
+    public DefaultTransactionProcessingService(TransactionRepository transactionRepository, KafkaTemplate<String, TransactionDto> kafkaTemplate, TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.transactionMapper = transactionMapper;
     }
 
     @Override
@@ -27,7 +37,7 @@ public class DefaultTransactionProcessingService implements TransactionProcessin
         Double amount = transaction.getAmount();
 
         if(sender.getBlocked() || receiver.getBlocked()){
-            //TODO отправить ошибочную транзакцию в топик
+            kafkaTemplate.send(transactionErrorTopic, transactionMapper.transactionDto(transaction));
             return false;
         } else {
             sender.setBalance(sender.getBalance() - amount);
@@ -39,7 +49,11 @@ public class DefaultTransactionProcessingService implements TransactionProcessin
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void doCancelationTransactionalProcess(Transaction transaction) {
+    // Можно было бы отсылать TransactionDto, что бы не делать доп запросы к БД
+    public void doCancelationTransactionalProcess(Long id) {
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(()
+                -> new RuntimeException("Transaction doesnt exist in Database"));
+
         Account sender = transaction.getSenderAccount();
         Account receiver = transaction.getReceiverAccount();
         Double amount = transaction.getAmount();
