@@ -1,3 +1,3 @@
 alter table transaction
-    add column sender_account_id BIGINT references account(id),
-    add column receiver_account_id BIGINT references account(id);
+    add column created_at TIMESTAMP default CURRENT_TIMESTAMP,
+    add column type varchar(10);

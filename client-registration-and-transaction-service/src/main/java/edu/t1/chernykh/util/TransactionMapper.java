@@ -24,7 +24,7 @@ public class TransactionMapper {
         return transaction;
     }
 
-    public TransactionDto transactionDto(Transaction transaction){
+    public TransactionDto toTransactionDto(Transaction transaction){
         return new TransactionDto(transaction.getAmount(),
                 transaction.getSenderAccount().getId(),
                 transaction.getReceiverAccount().getId());

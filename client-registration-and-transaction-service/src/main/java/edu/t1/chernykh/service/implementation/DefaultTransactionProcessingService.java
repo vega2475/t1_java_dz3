@@ -2,7 +2,9 @@ package edu.t1.chernykh.service.implementation;
 
 import edu.t1.chernykh.dto.TransactionDto;
 import edu.t1.chernykh.entity.Account;
+import edu.t1.chernykh.entity.AccountType;
 import edu.t1.chernykh.entity.Transaction;
+import edu.t1.chernykh.repository.AccountRepository;
 import edu.t1.chernykh.repository.TransactionRepository;
 import edu.t1.chernykh.service.TransactionProcessingService;
 import edu.t1.chernykh.util.TransactionMapper;
@@ -18,15 +20,17 @@ public class DefaultTransactionProcessingService implements TransactionProcessin
     private final TransactionRepository transactionRepository;
     private final KafkaTemplate<String, TransactionDto> kafkaTemplate;
     private final TransactionMapper transactionMapper;
+    private final AccountRepository accountRepository;
 
     @Value("${t1.kafka.topic.transaction_errors_topic}")
     private String transactionErrorTopic;
 
     @Autowired
-    public DefaultTransactionProcessingService(TransactionRepository transactionRepository, KafkaTemplate<String, TransactionDto> kafkaTemplate, TransactionMapper transactionMapper) {
+    public DefaultTransactionProcessingService(TransactionRepository transactionRepository, KafkaTemplate<String, TransactionDto> kafkaTemplate, TransactionMapper transactionMapper, AccountRepository accountRepository) {
         this.transactionRepository = transactionRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.transactionMapper = transactionMapper;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -37,9 +41,20 @@ public class DefaultTransactionProcessingService implements TransactionProcessin
         Double amount = transaction.getAmount();
 
         if(sender.getBlocked() || receiver.getBlocked()){
-            kafkaTemplate.send(transactionErrorTopic, transactionMapper.transactionDto(transaction));
+            kafkaTemplate.send(transactionErrorTopic, transactionMapper.toTransactionDto(transaction));
             return false;
         } else {
+            // Кредитный лимит исчерпан - блокируем счет
+            if(sender.getType() == AccountType.CREDIT &&
+                    sender.getBalance() < transaction.getAmount()){
+                sender.setBlocked(true);
+                accountRepository.save(sender);
+                kafkaTemplate.send(transactionErrorTopic, transactionMapper.toTransactionDto(transaction));
+                return false;
+            }
+            if(sender.getBalance() < amount){
+                return false;
+            }
             sender.setBalance(sender.getBalance() - amount);
             receiver.setBalance(receiver.getBalance() + amount);
             transactionRepository.save(transaction);
