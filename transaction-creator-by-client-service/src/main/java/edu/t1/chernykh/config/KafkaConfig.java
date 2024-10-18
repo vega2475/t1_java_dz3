@@ -1,5 +1,6 @@
 package edu.t1.chernykh.config;
 
+import edu.t1.chernykh.dto.TransactionDto;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
@@ -28,10 +29,8 @@ public class KafkaConfig {
     @Value("${t1.kafka.bootstrap.server}")
     private String servers;
 
-    private static final Logger log = LoggerFactory.getLogger(KafkaConfig.class);
-
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
+    public ProducerFactory<String, TransactionDto> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -45,7 +44,7 @@ public class KafkaConfig {
 
     @Bean
     @ConditionalOnProperty(name = "t1.kafka.producer.enable", havingValue = "true", matchIfMissing = true)
-    public KafkaTemplate<String, Long> transactionProducerKafkaTemplate(ProducerFactory<String, Long> producerFactory){
+    public KafkaTemplate<String, TransactionDto> transactionProducerKafkaTemplate(ProducerFactory<String, TransactionDto> producerFactory){
         return new KafkaTemplate<>(producerFactory);
     }
 }

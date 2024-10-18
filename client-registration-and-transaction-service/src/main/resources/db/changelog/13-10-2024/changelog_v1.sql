@@ -20,6 +20,7 @@ CREATE TABLE transaction
     id        SERIAL NOT NULL,
     amount    DECIMAL(19, 2),
     account_id BIGINT,
+    is_error BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id),
     FOREIGN KEY (account_id) references account(id)
 );

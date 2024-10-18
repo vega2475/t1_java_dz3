@@ -6,11 +6,14 @@ import edu.t1.chernykh.exception.AccountUnlockException;
 import edu.t1.chernykh.repository.AccountRepository;
 import edu.t1.chernykh.service.AccountService;
 import edu.t1.chernykh.service.TransactionProcessingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DefaultAccountService implements AccountService {
+    private static final Logger log = LoggerFactory.getLogger(DefaultAccountService.class);
     private final AccountRepository accountRepository;
     private final TransactionProcessingService transactionProcessingService;
 
@@ -27,6 +30,7 @@ public class DefaultAccountService implements AccountService {
             accountRepository.save(account);
             transactionProcessingService.doApprovalTransactionProcess(transaction);
         } else {
+            log.warn("Account didnt unblock");
             throw new AccountUnlockException("Account didnt unlock");
         }
     }

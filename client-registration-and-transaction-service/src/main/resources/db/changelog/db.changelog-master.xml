@@ -7,4 +7,5 @@
     <include file="db/changelog/14-10-2024/changelog_v1.sql"/>
     <include file="db/changelog/14-10-2024/changelog_v2.sql"/>
     <include file="db/changelog/15-10-2024/changelog_v1.sql"/>
+    <include file="db/changelog/15-10-2024/changelog_v2_data.sql"/>
 </databaseChangeLog>

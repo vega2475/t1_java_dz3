@@ -1,6 +1,7 @@
 package edu.t1.chernykh.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "account")
@@ -10,13 +11,16 @@ public class Account {
     private Long id;
 
     @Column(name = "client_id")
+    @NotNull
     private Long clientId;
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
+    @NotNull
     private AccountType type;
 
     @Column(name = "balance")
+    @NotNull
     private Double balance;
 
     @Column(name = "is_blocked")

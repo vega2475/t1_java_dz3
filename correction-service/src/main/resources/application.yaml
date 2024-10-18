@@ -14,7 +14,11 @@ t1:
     consumer:
       group-id: t1_demo
     topic:
+      transaction_topic: t1_demo_client_transactions
       transaction_errors_topic: t1_demo_client_transaction_errors
+    resend-interval: 1000
 
 server:
   port: 8002
+
+secret: sdfsdfdsfdsfdsfdsfdsfdsfdssdfw44fwrfwfewafdffewfwefewfwef

@@ -12,6 +12,8 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class KafkaTransactionConsumer {
     private static final Logger log = LoggerFactory.getLogger(KafkaTransactionConsumer.class);
@@ -29,15 +31,18 @@ public class KafkaTransactionConsumer {
             topics = "${t1.kafka.topic.transaction_topic}",
             containerFactory = "transactionDtoConcurrentKafkaListenerContainerFactory"
     )
-    public void listenTransactions(@Payload TransactionDto transactionDto,
+    public void listenTransactions(@Payload List<TransactionDto> transactionDtoList,
                                    Acknowledgment acknowledgment) {
-        log.info("Начало обработки сообщения {}", transactionDto);
+        log.info("Начало обработки сообщений {}", transactionDtoList);
         try {
-            Transaction transaction = transactionMapper.toTransaction(transactionDto);
-            transactionProcessingService.doApprovalTransactionProcess(transaction);
+            transactionDtoList.forEach(transactionDto -> {
+                Transaction transaction = transactionMapper.toTransaction(transactionDto);
+                transaction.setError(false);
+                transactionProcessingService.doApprovalTransactionProcess(transaction);
+            });
         } finally {
             acknowledgment.acknowledge();
         }
-        log.info("Сообщение {} обработано", transactionDto);
+        log.info("Сообщения {} обработаны", transactionDtoList);
     }
 }

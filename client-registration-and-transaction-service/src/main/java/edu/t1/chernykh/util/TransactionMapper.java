@@ -16,15 +16,16 @@ public class TransactionMapper {
     // Что бы не подтягивать счет по id из БД и не нагружать БД можно было бы передавать его в JSON теле
     public Transaction toTransaction(TransactionDto transactionDto){
         Transaction transaction = new Transaction();
-        transaction.setAmount(transaction.getAmount());
+        transaction.setAmount(transactionDto.amount());
         Account account = accountRepository.findById(transactionDto.accountId()).orElseThrow();
+        transaction.setId(transactionDto.id());
         transaction.setAccount(account);
         transaction.setType(transactionDto.type());
         return transaction;
     }
 
     public TransactionDto toTransactionDto(Transaction transaction){
-        return new TransactionDto(transaction.getAmount(),
+        return new TransactionDto(transaction.getId(), transaction.getAmount(),
                 transaction.getAccount().getId(),
                 transaction.getType());
     }

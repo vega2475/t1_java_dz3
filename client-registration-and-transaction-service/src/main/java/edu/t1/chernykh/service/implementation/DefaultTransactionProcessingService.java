@@ -35,61 +35,67 @@ public class DefaultTransactionProcessingService implements TransactionProcessin
     public boolean doApprovalTransactionProcess(Transaction transaction) {
         Account account = transaction.getAccount();
 
-        if(account.getBlocked()){
-             processWithBlockedAccount(transaction.getId());
-             return false;
+        if (account.getBlocked()) {
+            processWithBlockedAccount(transaction);
+            return false;
         } else {
             return processTransaction(account, transaction);
         }
     }
 
     private boolean processTransaction(Account account, Transaction transaction) {
-        if(account.getType() == AccountType.CREDIT){
-            switch (transaction.getType()){
+        if (account.getType() == AccountType.CREDIT) {
+            switch (transaction.getType()) {
                 case DEBIT -> {
-                    if(account.getBalance() < transaction.getAmount()){
+                    if (account.getBalance() < transaction.getAmount()) {
                         account.setBlocked(true);
                         accountRepository.save(account);
-                        processWithBlockedAccount(transaction.getId());
+                        processWithBlockedAccount(transaction);
                         return false;
                     } else {
                         processDebit(account, transaction);
                         return true;
                     }
-                } case ACCRUAL -> {
-                    processAccrual(account, transaction);
-                    return true;
-                } default -> throw new UnsupportedOperationException("Unsupported transaction type");
-            }
-        } else if (account.getType() == AccountType.DEPOSIT){
-            switch (transaction.getType()){
+                }
                 case ACCRUAL -> {
                     processAccrual(account, transaction);
                     return true;
-                } case DEBIT -> {
-                    if (account.getBalance() < transaction.getAmount()){
+                }
+                default -> throw new UnsupportedOperationException("Unsupported transaction type");
+            }
+        } else if (account.getType() == AccountType.DEPOSIT) {
+            switch (transaction.getType()) {
+                case ACCRUAL -> {
+                    processAccrual(account, transaction);
+                    return true;
+                }
+                case DEBIT -> {
+                    if (account.getBalance() < transaction.getAmount()) {
                         return false;
                     } else {
                         processDebit(account, transaction);
                         return true;
                     }
-                }default -> throw new UnsupportedOperationException("Unsupported transaction type");
+                }
+                default -> throw new UnsupportedOperationException("Unsupported transaction type");
             }
         }
         throw new UnsupportedOperationException("Unhandled account type");
     }
 
-    private void processWithBlockedAccount(Long transactionId) {
-        kafkaTemplate.send(transactionErrorTopic, transactionId);
+    private void processWithBlockedAccount(Transaction transaction) {
+        transaction.setError(true);
+        transactionRepository.save(transaction);
+        kafkaTemplate.send(transactionErrorTopic, transaction.getId());
     }
 
-    private void processAccrual(Account account, Transaction transaction){
+    private void processAccrual(Account account, Transaction transaction) {
         account.setBalance(account.getBalance() + transaction.getAmount());
         accountRepository.save(account);
         transactionRepository.save(transaction);
     }
 
-    private void processDebit(Account account, Transaction transaction){
+    private void processDebit(Account account, Transaction transaction) {
         account.setBalance(account.getBalance() - transaction.getAmount());
         accountRepository.save(account);
         transactionRepository.save(transaction);
@@ -105,10 +111,10 @@ public class DefaultTransactionProcessingService implements TransactionProcessin
         Account account = transaction.getAccount();
         Double amount = transaction.getAmount();
 
-        if(transaction.getType() == TransactionType.DEBIT){
+        if (transaction.getType() == TransactionType.DEBIT) {
             account.setBalance(account.getBalance() + amount);
             accountRepository.save(account);
-        } else if (transaction.getType() == TransactionType.ACCRUAL){
+        } else if (transaction.getType() == TransactionType.ACCRUAL) {
             account.setBalance(account.getBalance() - amount);
             accountRepository.save(account);
         }

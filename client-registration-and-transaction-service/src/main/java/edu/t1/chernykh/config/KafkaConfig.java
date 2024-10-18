@@ -2,17 +2,17 @@ package edu.t1.chernykh.config;
 
 import edu.t1.chernykh.dto.TransactionDto;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -33,7 +33,7 @@ public class KafkaConfig {
     private String servers;
 
     @Bean
-    public ConsumerFactory<String, TransactionDto> transactionConsumerFactory(){
+    public ConsumerFactory<String, TransactionDto> transactionConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -53,15 +53,24 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, TransactionDto> transactionDtoConcurrentKafkaListenerContainerFactory(){
+    public ConcurrentKafkaListenerContainerFactory<String, TransactionDto> transactionDtoConcurrentKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, TransactionDto> containerFactory = new ConcurrentKafkaListenerContainerFactory<>();
         factoryBuilder(transactionConsumerFactory(), containerFactory);
         return containerFactory;
     }
 
     @Bean
-    public KafkaTemplate<String, Long>transactionProducerKafkaTemplate(ProducerFactory<String, Long> producerFactory){
-        return new KafkaTemplate<>(producerFactory);
+    public KafkaTemplate<String, Long> transactionProducerKafkaTemplate() {
+        return new KafkaTemplate<>(transactionProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<String, Long> transactionProducerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+        return new DefaultKafkaProducerFactory<>(configProps);
     }
 
     private <T> void factoryBuilder(ConsumerFactory<String, T> consumerFactory, ConcurrentKafkaListenerContainerFactory<String, T> factory) {

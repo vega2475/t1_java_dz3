@@ -20,10 +20,14 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
-    public Transaction(Double amount, Account account, TransactionType type) {
+    @Column(name = "is_error")
+    private Boolean isError;
+
+    public Transaction(Double amount, Account account, TransactionType type, Boolean isError) {
         this.amount = amount;
         this.account = account;
         this.type = type;
+        this.isError = isError;
     }
 
     public Transaction() {}
@@ -54,5 +58,13 @@ public class Transaction {
 
     public Long getId() {
         return id;
+    }
+
+    public Boolean getError() {
+        return isError;
+    }
+
+    public void setError(Boolean error) {
+        isError = error;
     }
 }
