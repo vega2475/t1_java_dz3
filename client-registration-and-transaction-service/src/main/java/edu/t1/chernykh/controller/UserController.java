@@ -1,7 +1,7 @@
 package edu.t1.chernykh.controller;
 
 import edu.t1.chernykh.dto.MessageResponse;
-import edu.t1.chernykh.dto.SignUpRequest;
+import edu.t1.chernykh.dto.AuthRequest;
 import edu.t1.chernykh.entity.User;
 import edu.t1.chernykh.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +24,10 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(SignUpRequest signUpRequest){
-        User user = new User(signUpRequest.login(),
-                passwordEncoder.encode(signUpRequest.password()));
-        if (userRepository.existsUserByLogin(signUpRequest.login())){
+    public ResponseEntity<?> registerUser(AuthRequest authRequest){
+        User user = new User(authRequest.login(),
+                passwordEncoder.encode(authRequest.password()));
+        if (userRepository.existsUserByLogin(authRequest.login())){
             return ResponseEntity.badRequest().body(new MessageResponse("User with this login already exists"));
         }
         userRepository.save(user);

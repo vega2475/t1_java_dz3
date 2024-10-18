@@ -1,12 +1,10 @@
+server:
+  address: 8001
 t1:
   kafka:
     bootstrap:
       server: localhost:9092
-    consumer:
-      group-id: t1_demo
     producer:
       enable: true
     topic:
       transaction_topic: t1_demo_client_transactions
-server:
-  port: 8001
